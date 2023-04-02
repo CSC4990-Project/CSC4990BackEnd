@@ -3,10 +3,11 @@ package controllers
 import (
 	"github.com/CSC4990-Project/CSC4990BackEnd/database"
 	"github.com/CSC4990-Project/CSC4990BackEnd/models"
+	"strconv"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func Register(c *fiber.Ctx) error {
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
 	uType, _ := strconv.ParseUint(data["type"], 10, 64)
 	User := models.User{
-		UserType: uint(uType),
+		UType:    int(uType),
 		Email:    data["email"],
 		Password: password,
 	}
@@ -39,7 +40,6 @@ func Login(c *fiber.Ctx) error {
 	var user models.User
 
 	database.DB.Where("email = ?", data["email"]).First(&user)
-
 	if user.Email == "" {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
@@ -87,10 +87,8 @@ func User(c *fiber.Ctx) error {
 		})
 	}
 	claims := token.Claims.(*jwt.StandardClaims)
-
 	var user models.User
-	database.DB.Where("email=?", claims.Issuer).First(&user)
-
+	database.DB.Table("users").Joins("JOIN usertype on usertype.id = users.u_type").Select("users.email,users.u_type, usertype.user_type").Where("email=?", claims.Issuer).First(&user)
 	return c.JSON(user)
 }
 

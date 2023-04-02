@@ -13,5 +13,4 @@ func Connect() {
 		panic("could not connect to the database")
 	}
 	DB = connection
-
 }
