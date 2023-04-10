@@ -3,12 +3,12 @@ package controllers
 import (
 	"github.com/CSC4990-Project/CSC4990BackEnd/database"
 	"github.com/CSC4990-Project/CSC4990BackEnd/models"
-	"strconv"
-
 	"github.com/dgrijalva/jwt-go"
+	"strconv"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 const SecretKey = "secret"
@@ -22,11 +22,18 @@ func Register(c *fiber.Ctx) error {
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
 	uType, _ := strconv.ParseUint(data["type"], 10, 64)
 	User := models.User{
-		UType:    int(uType),
+		Type:     int(uType),
 		Email:    data["email"],
 		Password: password,
 	}
-	database.DB.Create(&User)
+	stmt, err := database.DB.Prepare("INSERT INTO user (email,password,type) VALUES (?,?,?)")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(User.Email, User.Password, User.Type)
+	if err != nil {
+		panic(err)
+	}
 	return c.JSON(User)
 }
 
@@ -39,8 +46,9 @@ func Login(c *fiber.Ctx) error {
 
 	var user models.User
 
-	database.DB.Where("email = ?", data["email"]).First(&user)
-	if user.Email == "" {
+	err := database.DB.QueryRow("SELECT email, password FROM user WHERE email =?", data["email"]).Scan(&user.Email, &user.Password)
+
+	if err != nil {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
 			"message": "user not found",
@@ -75,6 +83,7 @@ func Login(c *fiber.Ctx) error {
 		"message": "success",
 	})
 }
+
 func User(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -87,8 +96,8 @@ func User(c *fiber.Ctx) error {
 		})
 	}
 	claims := token.Claims.(*jwt.StandardClaims)
-	var user models.User
-	database.DB.Table("users").Joins("JOIN usertype on usertype.id = users.u_type").Select("users.email,users.u_type, usertype.user_type").Where("email=?", claims.Issuer).First(&user)
+	var user models.EmailType
+	database.DB.QueryRow("SELECT user.email,usertype.type from user,usertype WHERE email =? AND usertype.id = user.type", claims.Issuer).Scan(&user.Email, &user.UserType)
 	return c.JSON(user)
 }
 
