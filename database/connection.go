@@ -8,7 +8,7 @@ import (
 var DB *sql.DB
 
 func Connect() {
-	connection, err := sql.Open("mysql", "root:YES@tcp(localhost:3306)/CSC4990")
+	connection, err := sql.Open("mysql", "jacob:jacob@tcp(localhost:3306)/CSC4990")
 	if err != nil {
 		panic("could not connect to the database")
 	}
