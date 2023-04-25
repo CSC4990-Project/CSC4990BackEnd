@@ -9,7 +9,7 @@ func Setup(app *fiber.App) {
 	app.Post("/api/register", controllers.Register)
 	app.Post("/api/Login", controllers.Login)
 	app.Get("/api/user", controllers.User)
-	app.Get("/api/userTicket", controllers.UserTicketView)
+	app.Get("/api/userTicket/:user", controllers.UserTicketView)
 	app.Post("/api/logout", controllers.Logout)
 	app.Get("/api/tickets", controllers.AdminTicketView)
 	app.Get("/api/tickets/:id", controllers.DetailedView)
