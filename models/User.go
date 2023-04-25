@@ -24,6 +24,7 @@ type Ticket struct {
 	RoomNum    string `json:"roomNum"`
 	TimeSubmit string `json:"timeSubmit"`
 	Issue      string `json:"issue"`
+	User       string `json:"user"`
 }
 
 type TicketDetails struct {
@@ -40,6 +41,8 @@ type TicketDetails struct {
 	User             string `json:"user"`
 	Severity         string `json:"severity"`
 	Issue            string `json:"issue"`
+	SeverityID       string `json:"severityID"`
+	ProgressID       string `json:"progressID"`
 }
 type SubmitTicket struct {
 	Building     int    `json:"building"`
